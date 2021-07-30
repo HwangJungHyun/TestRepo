@@ -40,26 +40,35 @@ const properties = [
 
 const isFirefox = typeof window !== 'undefined' && window['mozInnerScreenX'] != null
 
+// JavaScript는 type이 불명확하므로 @param을 통해 파라미터에 대한 설명을 명시
 /**
  * @param {HTMLTextAreaElement} element
  * @param {number} position
  */
 function getCaretCoordinates(element, position) {
+    // div의 HTML 요소를 반환 
     const div = document.createElement('div')
+    // 문서에 있는 바디 요소의 끝에 div를 붙임 (<body><div></div></body>)
     document.body.appendChild(div)
 
     const style = div.style
+    // element의 모든 CSS 속성값을 담은 객체를 회신
     const computed = getComputedStyle(element)
 
+    // 연속 공백 유지. 한 줄이 너무 길어서 넘칠 경우 자동으로 줄을 바꿈
     style.whiteSpace = 'pre-wrap'
+    // 단어 넘침 X
     style.wordWrap = 'break-word'
+    // 절대위치. 위치 고정
     style.position = 'absolute'
     style.visibility = 'hidden'
 
+    // forEach는 map과는 달리 리턴값 X. 단순 순회
     properties.forEach(prop => {
         style[prop] = computed[prop]
     })
 
+    // Firefox 브라우저가 아닌 경우
     if (!isFirefox) {
         if (element.scrollHeight > parseInt(computed.height))
             console.log(parseInt(computed.height));
@@ -67,6 +76,7 @@ function getCaretCoordinates(element, position) {
         style.overflow = 'hidden'
     }
 
+    // 0부터 position 전까지의 부분 문자열을 반환
     div.textContent = element.value.substring(0, position)
 
     const span = document.createElement('span')
@@ -94,6 +104,7 @@ function getCaretCoordinates(element, position) {
 // )
 
 class Mentionify {
+    // 비동기 처리로 인한 정상적인 값 출력을 위한 인자 값 bind()
     constructor(ref, menuRef, resolveFn, replaceFn, menuItemFn) {
         this.ref = ref
         this.menuRef = menuRef
@@ -109,10 +120,13 @@ class Mentionify {
         this.onKeyDown = this.onKeyDown.bind(this)
         this.renderMenu = this.renderMenu.bind(this)
 
+        // input 이벤트 발생 시 onInput 함수 실행
         this.ref.addEventListener('input', this.onInput)
+        // keydown 이벤트 발생 시 onKeyDown 함수 실행
         this.ref.addEventListener('keydown', this.onKeyDown)
     }
 
+    // 비동기로 처리
     async makeOptions(query) {
         const options = await this.resolveFn(query)
         if (options.lenght !== 0) {
