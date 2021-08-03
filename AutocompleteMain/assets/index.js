@@ -113,6 +113,7 @@ class Mentionify {
         this.resolveFn = resolveFn
         this.replaceFn = replaceFn
         this.menuItemFn = menuItemFn
+        // 필터링 된 유저를 저장하는 배열
         this.options = []
 
         this.makeOptions = this.makeOptions.bind(this)
@@ -130,7 +131,7 @@ class Mentionify {
 
     // 필터링 된 유저 판별
     async makeOptions(query) {
-        // 필터링 비동기 처리
+        // 필터링 비동기 처리된 유저들 = options에 저장
         const options = await this.resolveFn(query)
         // 필터링된 유저가 한명이라도 있는 경우
         if (options.length !== 0) {
@@ -198,12 +199,16 @@ class Mentionify {
             return
         }
 
+        // trigger를 제외한 순수 쿼리 추출
         const query = textBeforeCaret.slice(triggerIdx + 1)
+        // 쿼리를 넘겨 필터링 시켜주는 함수
         this.makeOptions(query)
 
+        // 현재 메뉴의 위치를 조정하기위한 위치좌표를 얻음
         const coords = getCaretCoordinates(this.ref, positionIndex)
         const { top, left } = this.ref.getBoundingClientRect()
 
+        // 위치 좌표에 맞게 메뉴 위치를 옮김
         setTimeout(() => {
             this.active = 0
             this.left = window.scrollX + coords.left + left + this.ref.scrollLeft
@@ -219,7 +224,6 @@ class Mentionify {
         // trigger(@)가 있는 경우에만 = 메뉴창이 열렸을 때만
         if (this.triggerIdx !== undefined) {
             switch (ev.key) {
-                // 키보드 윗방향키
                 case 'ArrowDown':
                     this.active = Math.min(this.active + 1, this.options.length - 1)
                     this.renderMenu()
@@ -255,6 +259,7 @@ class Mentionify {
         this.menuRef.style.top = this.top + 'px'
         this.menuRef.innerHTML = ''
 
+        // option을 순회하며 선택된 유저를 메뉴에 표시
         this.options.forEach((option, idx) => {
             this.menuRef.appendChild(this.menuItemFn(
                 option,
@@ -292,7 +297,7 @@ const resolveFn = prefix => prefix === ''
 // trigger(현재는 @)과 username을 합쳐서 만들어줌(자동완성)
 const replaceFn = (user, trigger) => `${trigger}${user.username} `
 
-//
+// 선택된 메뉴의 아이템(여기선 유저)을 그려주는 함수
 const menuItemFn = (user, setItem, selected) => {
     const div = document.createElement('div')
     div.setAttribute('role', 'option')
@@ -302,6 +307,7 @@ const menuItemFn = (user, setItem, selected) => {
         div.setAttribute('aria-selected', '')
     }
     div.textContent = user.username
+    // 클릭 시 이벤트 처리(selectItem으로 넘어감)
     div.onclick = setItem
     return div
 }
